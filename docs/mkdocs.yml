@@ -1,6 +1,6 @@
 site_name: Quasar Engine (PD)
 docs_dir: docs
-site_url: https://example.com/
+site_url: https://rounak-paul.github.io/vklite/
 nav:
   - Home: index.md
   - VkLite:
