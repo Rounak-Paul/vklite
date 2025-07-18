@@ -1,4 +1,4 @@
-site_name: Quasar Engine (PD)
+site_name: VkLite - A Modern Vulkan Renderer
 docs_dir: docs
 site_url: https://rounak-paul.github.io/vklite/
 nav:
@@ -56,7 +56,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github-alt
-      link: https://github.com/Rounak-Paul/QuasarEngine
+      link: https://github.com/Rounak-Paul/vklite.git
     - icon: fontawesome/brands/youtube
       link: https://www.youtube.com/@rounakpaul001?sub_confirmation=1
     - icon: fontawesome/brands/linkedin
