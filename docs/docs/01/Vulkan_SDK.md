@@ -24,7 +24,7 @@ In Vulkan terminology, the GPU and its associated hardware ecosystem constitute 
 
 ---
 
-## The Memory Boundary: Host and Device Memory Systems
+# The Memory Boundary: Host and Device Memory Systems
 
 One of the most critical aspects of modern graphics programming is understanding the relationship between different memory systems. The Host System's memory — accessible directly by the CPU — exists in a different address space from the Device's memory pool. This separation has profound implications for performance, data management, and API design.
 
@@ -34,7 +34,7 @@ The boundary between host and device memory represents one of the primary bottle
 
 ---
 
-## The Software Interface: APIs, Drivers, and Standards
+# The Software Interface: APIs, Drivers, and Standards
 
 Graphics APIs serve as the critical abstraction layer between application code and the underlying hardware diversity of the graphics ecosystem. They provide a standardized vocabulary for describing rendering operations, managing resources, and coordinating between the host and device systems.
 
@@ -48,7 +48,7 @@ Our Vulkan development targets version 1.3 and above, which represents a mature 
 
 ---
 
-## Setting Up the Development Environment
+# Setting Up the Development Environment
 
 Developing with Vulkan requires a complete SDK that includes not only the API headers and link libraries, but also validation layers, debugging tools, and utility applications. The de facto standard distribution is provided by LunarG, which packages the official Khronos Group components into platform-specific installers.
 
