@@ -65,3 +65,7 @@ extra:
 
 copyright: |
   &copy; 2025 <a href="https://github.com/Rounak-Paul"  target="_blank" rel="noopener">Rounak Paul</a>
+  <br>
+  <span style="font-size: 0.9em; color: #888;">
+    This site is not affiliated with the Khronos Group. Vulkan® and the Vulkan logo are trademarks of the Khronos Group Inc.
+  </span>
