@@ -62,4 +62,4 @@ One of the first steps after installation is verifying that your system's graphi
 
 This verification step is more significant than it might initially appear. Vulkan's explicit design means that many configuration issues that would be silently handled by higher-level APIs will instead result in clear failures. A working `vkcube` demonstrates that the complex chain of SDK components, system drivers, and hardware capabilities is properly aligned — a necessary foundation for more sophisticated development work.
 
-The journey from this simple spinning cube to advanced rendering techniques represents one of the most challenging but rewarding paths in modern graphics programming. Vulkan demands precision and understanding, but it offers something invaluable in return: the ability to extract every ounce of performance from modern graphics hardware, predictably and consistently across platforms.
+**Next** [Project Setup]()

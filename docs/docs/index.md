@@ -132,4 +132,4 @@ This course and the associated source code are licensed under the **Apache 2.0 L
 
 ---
 
-**To begin, continue to** [Chapter 00 – Introduction to Vulkan](00/introduction.md).
+**To begin, continue to** [Chapter 00 – Introduction to Vulkan](00/Introduction.md).
