@@ -4,7 +4,7 @@ title: VkLite
 
 # VkLite – A Modern Vulkan Renderer
 
-**VkLite** is a lightweight yet fully functional Vulkan-based renderer developed from first principles. It serves as both a practical implementation and a pedagogical guide for building a modern real-time graphics engine. While the course is approachable for beginners, it is also structured to scale with intermediate-level learners who wish to develop a deeper understanding of graphics programming using Vulkan and C++.
+**VkLite** is a lightweight yet fully functional Vulkan-based renderer developed from first principles. It serves as both a practical implementation and a pedagogical guide for building a modern real-time graphics engine. While the material is approachable for beginners, it is also structured to scale with intermediate-level learners who wish to develop a deeper understanding of graphics programming using Vulkan and C++.
 
 The renderer is written using the C++20 standard, but modern language features have been deliberately limited to ensure clarity, portability, and accessibility. The codebase is organized with clean abstractions and modular architecture, making it suitable as a starting point for research projects, educational tools, or real-time games.
 
@@ -12,7 +12,7 @@ The renderer is written using the C++20 standard, but modern language features h
 
 ## Target Audience
 
-This course is designed for:
+This material is designed for:
 
 - Undergraduate and graduate students studying computer graphics or game development.
 - Beginners with a strong interest in graphics programming who are willing to engage with low-level APIs.
@@ -25,7 +25,7 @@ A prior understanding of basic C++ programming and linear algebra is expected. N
 
 ## Learning Outcomes
 
-Upon completing this course, the reader will be able to:
+Upon completing this material, the reader will be able to:
 
 - Initialize and manage Vulkan instances, devices, and swapchains.
 - Understand and implement GPU-side synchronization, memory barriers, and descriptor sets.
@@ -128,7 +128,7 @@ Contributions via pull requests or external tutorials based on this framework ar
 
 ## License
 
-This course and the associated source code are licensed under the **MIT License**, allowing free use, modification, and distribution for academic, educational, and commercial purposes. Proper attribution to the original author is required.
+This course and the associated source code are licensed under the **Apache 2.0 License**, allowing free use for academic, educational, and commercial purposes. Proper attribution to the original author is required.
 
 ---
 

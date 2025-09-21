@@ -52,9 +52,11 @@ Our Vulkan development targets version 1.3 and above, which represents a mature 
 
 Developing with Vulkan requires a complete SDK that includes not only the API headers and link libraries, but also validation layers, debugging tools, and utility applications. The de facto standard distribution is provided by LunarG, which packages the official Khronos Group components into platform-specific installers.
 
-The SDK can be obtained from LunarG's distribution portal and includes several essential components: the core API headers that define Vulkan's interface, validation layers that help catch programming errors during development, and diagnostic tools that can analyze performance and correctness.
+The SDK can be obtained from [LunarG's distribution portal](https://vulkan.lunarg.com) and includes several essential components: the core API headers that define Vulkan's interface, validation layers that help catch programming errors during development, and diagnostic tools that can analyze performance and correctness.
 
-One of the first steps after installation is verifying that your system's graphics hardware and drivers properly support Vulkan. The SDK includes a simple demonstration application — typically called `vkcube` — that renders a rotating cube using basic Vulkan operations. Successfully running this application confirms that your development environment is properly configured and that your graphics driver provides functional Vulkan support.
+![Alt text](./lunarG.png "Optional title text")
+
+One of the first steps after installation is verifying that your system's graphics hardware and drivers properly support Vulkan. The SDK includes a simple demonstration application — typically called `vkcube` — that renders a rotating cube using basic Vulkan operations. Successfully running this application confirms that your hardware drivers supports Vulkan runtime.
 
 This verification step is more significant than it might initially appear. Vulkan's explicit design means that many configuration issues that would be silently handled by higher-level APIs will instead result in clear failures. A working `vkcube` demonstrates that the complex chain of SDK components, system drivers, and hardware capabilities is properly aligned — a necessary foundation for more sophisticated development work.
 

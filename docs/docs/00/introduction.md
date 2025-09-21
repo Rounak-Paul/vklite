@@ -2,7 +2,7 @@
 title: vulkan introduction
 ---
 
-Computer graphics has always lived at the intersection of science and imagination. From the pixelated simplicity of Pong in the 1970s to the photorealism of modern video games and cinematic visual effects, our tools for drawing to the screen have grown astonishingly powerful. But behind every realistic explosion, glowing sunset, or procedurally generated planet lies a mountain of computation — and a carefully orchestrated dance between software and hardware.
+Computer graphics has always lived at the intersection of science and imagination. From the pixelated simplicity of Pong in 1970s to the photorealism of modern video games and cinematic visual effects, our tools for drawing to the screen have grown astonishingly powerful. But behind every realistic explosion, glowing sunset, or procedurally generated planet lies a mountain of computation — and a carefully orchestrated pipeline between software and hardware.
 
 To understand Vulkan — a modern graphics API designed for maximum performance and control — we must first understand the journey that brought us here. The story of Vulkan is not just about a new tool, but about the evolution of the very way we think about rendering images with computers.
 
