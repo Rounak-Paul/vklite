@@ -5,7 +5,7 @@ nav:
   - Home: index.md
   - VkLite:
     - 00 Introduction to Vulkan: 
-      - Introduction: 00/introduction.md
+      - Introduction: 00/Introduction.md
     - 01 Project Setup:
       - Vulkan SDK: 01/Vulkan_SDK.md
     # - 02. Renderloop:
