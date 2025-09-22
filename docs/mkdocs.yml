@@ -8,6 +8,7 @@ nav:
       - Introduction: 00/Introduction.md
     - 01 Project Setup:
       - Vulkan SDK: 01/Vulkan_SDK.md
+      - Project Setup: 01/Project_Setup.md
     # - 02. Renderloop:
     # - 03. The Compute Pipeline:
     # - 04. Immidiate Mode GUI:
