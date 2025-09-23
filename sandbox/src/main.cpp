@@ -17,7 +17,7 @@ int main() {
     return 1;
   }
 
-  std::cout << "main: win1=" << win1 << " win2=" << win2 << " ctx.windows=" << ctx.getWindows().size() << "\n";
+  std::cout << " ctx.windows=" << ctx.getWindows().size() << "\n";
   std::cout << "sandbox running... (close all windows to exit)\n";
   ctx.runMainLoop();
 
