@@ -10,6 +10,7 @@ With the Vulkan SDK installed and verified (see previous chapter), we are ready 
 
 ## Create the Folder Structure
 
+
 Organize your project for clarity and scalability. A recommended structure is:
 
 ```text
@@ -19,15 +20,22 @@ project_root/
 │   ├── CMakeLists.txt
 │   ├── include/
 │   │   └── vklite.h
-│   └── src/
-│       └── vklite.cpp
+│   ├── src/
+│   │   └── vklite.cpp
+│   └── vendor/
+│       ├── entt/
+│       ├── glfw/
+│       ├── glm/
+│       ├── imgui/
+│       ├── tinyobjloader/
+│       └── vma/
 ├── sandbox/
 │   ├── CMakeLists.txt
 │   └── src/
 │       └── main.cpp
 ```
 
-This separates the core renderer (`vklite`) from example or test applications (`sandbox`).
+This separates the core renderer (`vklite`) from example or test applications (`sandbox`), and places all third-party dependencies in the `vendor` folder as submodules.
 
 ## Source Code for Starter Files
 
@@ -124,22 +132,45 @@ Each subdirectory (`vklite`, `sandbox`) should have its own `CMakeLists.txt`.
 
 ## Configure Vulkan SDK in CMake
 
-In your `vklite/CMakeLists.txt`, find and link the Vulkan library:
+target_include_directories(vklite PUBLIC include)
+target_link_libraries(vklite PUBLIC Vulkan::Vulkan)
+
+In your `vklite/CMakeLists.txt`, add each vendor as a subdirectory and link their targets to your library:
 
 ```cmake
+# Add vendor submodules
+add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glm)
+add_subdirectory(vendor/entt)
+add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/tinyobjloader)
+add_subdirectory(vendor/vma)
+
 find_package(Vulkan REQUIRED)
 
 add_library(vklite
 	src/vklite.cpp
-	include/vklite.h
 )
 
-target_include_directories(vklite PUBLIC include)
-target_link_libraries(vklite PUBLIC Vulkan::Vulkan)
-set_target_properties(vklite PROPERTIES CXX_STANDARD 20)
+target_include_directories(vklite
+	PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(vklite
+	PUBLIC
+		Vulkan::Vulkan
+		glfw
+		glm-header-only
+		EnTT
+		ImGui
+		tinyobjloader
+		GPUOpen::VulkanMemoryAllocator
+)
 ```
 
-This ensures your renderer links against the Vulkan SDK and uses modern C++.
+This ensures your renderer links against the Vulkan SDK and all third-party dependencies, using modern C++.
 
 ---
 

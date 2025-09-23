@@ -1,15 +1,36 @@
+
+# Add vendor submodules
+add_subdirectory(vendor/glfw)
+add_subdirectory(vendor/glm)
+add_subdirectory(vendor/entt)
+add_subdirectory(vendor/imgui)
+add_subdirectory(vendor/tinyobjloader)
+add_subdirectory(vendor/vma)
+
+find_package(Vulkan REQUIRED)
+
 add_library(vklite
     src/vklite.cpp
 )
 
 target_include_directories(vklite
     PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
 )
 
-find_package(Vulkan REQUIRED)
-target_link_libraries(vklite PUBLIC Vulkan::Vulkan)
+target_link_libraries(vklite
+    PUBLIC
+        Vulkan::Vulkan
+        glfw
+        glm-header-only
+        EnTT
+        ImGui
+        tinyobjloader
+        GPUOpen::VulkanMemoryAllocator
+)
+
+target_compile_features(vklite PUBLIC cxx_std_17)
 
 # Platform identification macros for use in headers / PCHs
 if(WIN32)
@@ -19,8 +40,6 @@ elseif(APPLE)
 elseif(UNIX)
     target_compile_definitions(vklite PRIVATE VKLITE_PLAT_LINUX=1)
 endif()
-
-target_compile_features(vklite PUBLIC cxx_std_17)
 
 if(WIN32)
     target_compile_definitions(vklite PRIVATE VK_USE_PLATFORM_WIN32_KHR)

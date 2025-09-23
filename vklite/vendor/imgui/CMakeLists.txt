@@ -1,3 +1,4 @@
+
 file(GLOB IMGUI_SOURCES CONFIGURE_DEPENDS
     imgui/*.cpp
     imgui/*.h
@@ -10,13 +11,19 @@ file(GLOB IMGUI_SOURCES CONFIGURE_DEPENDS
 add_library(ImGui ${IMGUI_SOURCES})
 set_target_properties(ImGui PROPERTIES LINKER_LANGUAGE CXX)
 
+# Add Vulkan include directory if Vulkan::Vulkan is found
+find_package(Vulkan REQUIRED)
+get_target_property(VULKAN_INCLUDE_DIR Vulkan::Vulkan INTERFACE_INCLUDE_DIRECTORIES)
+
 target_include_directories(ImGui PUBLIC
     imgui
-    ${PROJECT_SOURCE_DIR}/Quasar/Vendor/GLFW/include
-    ${VULKAN_PATH}/include
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/imgui>
+    $<INSTALL_INTERFACE:imgui>
+    ${VULKAN_INCLUDE_DIR}
 )
 
 target_link_libraries(ImGui PUBLIC
     glfw
+    Vulkan::Vulkan
 )
 
