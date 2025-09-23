@@ -195,6 +195,10 @@ bool Context::createSwapchainForWindow(Window* window) {
     window->swapchainImageViews.push_back(view);
   }
 
+  // Remember the swapchain image format for pipeline creation
+  window->swapchainFormat = chosenFormat.format;
+  std::cerr << "createSwapchainForWindow: chosenFormat=" << static_cast<int>(chosenFormat.format) << "\n";
+
   // Create command pool and buffer
   VkCommandPoolCreateInfo cp{};
   cp.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -272,6 +276,7 @@ void Context::renderWindow(Window* window) {
 
   uint32_t imageIndex = 0;
   VkResult r = vkAcquireNextImageKHR(device, window->swapchain, UINT64_MAX, window->imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+  std::cerr << "vkAcquireNextImageKHR result=" << r << " imageIndex=" << imageIndex << "\n";
   if (r != VK_SUCCESS && r != VK_SUBOPTIMAL_KHR) return;
 
   // Record command buffer: transition image layout and begin dynamic rendering
@@ -304,9 +309,9 @@ void Context::renderWindow(Window* window) {
   colorAtt.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO_KHR;
   colorAtt.imageView = window->swapchainImageViews[imageIndex];
   colorAtt.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-  // Always clear to opaque black
+  // Always clear to opaque red for presentation test
   VkClearValue clearColor{};
-  clearColor.color.float32[0] = 0.0f;
+  clearColor.color.float32[0] = 1.0f;
   clearColor.color.float32[1] = 0.0f;
   clearColor.color.float32[2] = 0.0f;
   clearColor.color.float32[3] = 1.0f;
@@ -326,20 +331,118 @@ void Context::renderWindow(Window* window) {
   ri.colorAttachmentCount = 1;
   ri.pColorAttachments = &colorAtt;
 
+  // Create a small host-visible staging buffer to copy the swapchain image into
+  // so we can inspect pixels for debugging.
+  VkBuffer stagingBuffer = VK_NULL_HANDLE;
+  VkDeviceMemory stagingMemory = VK_NULL_HANDLE;
+  VkDeviceSize imageSize = static_cast<VkDeviceSize>(ri.renderArea.extent.width) * ri.renderArea.extent.height * 4; // RGBA8
+  {
+    VkBufferCreateInfo bci{};
+    bci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bci.size = imageSize;
+    bci.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    bci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (vkCreateBuffer(device, &bci, nullptr, &stagingBuffer) != VK_SUCCESS) {
+      stagingBuffer = VK_NULL_HANDLE;
+    }
+  }
+  if (stagingBuffer != VK_NULL_HANDLE) {
+    VkMemoryRequirements req{};
+    vkGetBufferMemoryRequirements(device, stagingBuffer, &req);
+    VkMemoryAllocateInfo mai{};
+    mai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    mai.allocationSize = req.size;
+    // Find a host visible memory type
+    VkPhysicalDeviceMemoryProperties memProps{};
+    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProps);
+    uint32_t memTypeIndex = UINT32_MAX;
+    for (uint32_t i = 0; i < memProps.memoryTypeCount; ++i) {
+      if ((req.memoryTypeBits & (1u << i)) && (memProps.memoryTypes[i].propertyFlags & (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) == (VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+        memTypeIndex = i;
+        break;
+      }
+    }
+    if (memTypeIndex == UINT32_MAX) {
+      // try any host visible
+      for (uint32_t i = 0; i < memProps.memoryTypeCount; ++i) {
+        if ((req.memoryTypeBits & (1u << i)) && (memProps.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT)) {
+          memTypeIndex = i; break;
+        }
+      }
+    }
+    if (memTypeIndex != UINT32_MAX) {
+      mai.memoryTypeIndex = memTypeIndex;
+      if (vkAllocateMemory(device, &mai, nullptr, &stagingMemory) != VK_SUCCESS) {
+        vkDestroyBuffer(device, stagingBuffer, nullptr);
+        stagingBuffer = VK_NULL_HANDLE;
+        stagingMemory = VK_NULL_HANDLE;
+      } else {
+        vkBindBufferMemory(device, stagingBuffer, stagingMemory, 0);
+      }
+    } else {
+      // no suitable memory type found
+      vkDestroyBuffer(device, stagingBuffer, nullptr);
+      stagingBuffer = VK_NULL_HANDLE;
+    }
+  }
+
   // Begin/End dynamic rendering via loaded function pointers
   this->vkCmdBeginRenderingKHR(window->commandBuffer, &ri);
-  // no draw calls
+  // If the application attached a pipeline to this window, record its draw commands.
+  if (window->pipeline) {
+    Context::Pipeline* p = reinterpret_cast<Context::Pipeline*>(window->pipeline);
+    // Use the convenience helper to record bind + draw
+    this->recordPipelineDraw(p, window, window->commandBuffer);
+  }
   this->vkCmdEndRenderingKHR(window->commandBuffer);
 
-  // Transition to present
-  barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-  barrier.dstAccessMask = 0;
-  barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-  barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-  vkCmdPipelineBarrier(window->commandBuffer,
-                       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                       VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                       0, 0, nullptr, 0, nullptr, 1, &barrier);
+  // For debugging: copy image to staging buffer (if available) before presenting.
+  if (stagingBuffer != VK_NULL_HANDLE) {
+    // Transition image from COLOR_ATTACHMENT_OPTIMAL -> TRANSFER_SRC_OPTIMAL
+    VkImageMemoryBarrier copyBarrier = barrier;
+    copyBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    copyBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    copyBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    copyBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    vkCmdPipelineBarrier(window->commandBuffer,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &copyBarrier);
+
+    VkBufferImageCopy bic{};
+    bic.bufferOffset = 0;
+    bic.bufferRowLength = 0;
+    bic.bufferImageHeight = 0;
+    bic.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    bic.imageSubresource.mipLevel = 0;
+    bic.imageSubresource.baseArrayLayer = 0;
+    bic.imageSubresource.layerCount = 1;
+    bic.imageOffset = {0,0,0};
+    bic.imageExtent = { ri.renderArea.extent.width, ri.renderArea.extent.height, 1 };
+
+    vkCmdCopyImageToBuffer(window->commandBuffer, window->swapchainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer, 1, &bic);
+
+    // Transition image from TRANSFER_SRC_OPTIMAL -> PRESENT_SRC_KHR
+    VkImageMemoryBarrier presBarrier = copyBarrier;
+    presBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    presBarrier.dstAccessMask = 0;
+    presBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    presBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    vkCmdPipelineBarrier(window->commandBuffer,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &presBarrier);
+  } else {
+    // No staging buffer available; transition directly to present
+    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask = 0;
+    barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    vkCmdPipelineBarrier(window->commandBuffer,
+                         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                         0, 0, nullptr, 0, nullptr, 1, &barrier);
+  }
 
   vkEndCommandBuffer(window->commandBuffer);
 
@@ -357,7 +460,9 @@ void Context::renderWindow(Window* window) {
   submit.signalSemaphoreCount = 1;
   submit.pSignalSemaphores = signalSemaphores;
 
-  if (vkQueueSubmit(graphicsQueue, 1, &submit, window->inFlightFence) != VK_SUCCESS) return;
+  VkResult submitRes = vkQueueSubmit(graphicsQueue, 1, &submit, window->inFlightFence);
+  std::cerr << "vkQueueSubmit result=" << submitRes << "\n";
+  if (submitRes != VK_SUCCESS) return;
 
   VkPresentInfoKHR present{};
   present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -367,7 +472,55 @@ void Context::renderWindow(Window* window) {
   present.pSwapchains = &window->swapchain;
   present.pImageIndices = &imageIndex;
 
-  vkQueuePresentKHR(graphicsQueue, &present);
+  VkResult presRes = vkQueuePresentKHR(graphicsQueue, &present);
+  std::cerr << "vkQueuePresentKHR result=" << presRes << "\n";
+
+  // For debugging: wait for device idle and inspect the staging buffer's center pixel
+  if (stagingBuffer != VK_NULL_HANDLE && stagingMemory != VK_NULL_HANDLE) {
+    vkDeviceWaitIdle(device);
+    void* data = nullptr;
+    vkMapMemory(device, stagingMemory, 0, VK_WHOLE_SIZE, 0, &data);
+    if (data) {
+      uint32_t w = ri.renderArea.extent.width;
+      uint32_t h = ri.renderArea.extent.height;
+      uint32_t cx = w / 2;
+      uint32_t cy = h / 2;
+      uint8_t* bytes = reinterpret_cast<uint8_t*>(data);
+      size_t rowPitch = static_cast<size_t>(w) * 4;
+      size_t idx = static_cast<size_t>(cy) * rowPitch + static_cast<size_t>(cx) * 4;
+      if (idx + 3 < imageSize) {
+        uint8_t r = 0, g = 0, b = 0, a = 0;
+        // Interpret bytes according to the swapchain image format
+        switch (window->swapchainFormat) {
+          case VK_FORMAT_B8G8R8A8_UNORM:
+          case VK_FORMAT_B8G8R8A8_SRGB:
+            // Stored as B, G, R, A in memory
+            b = bytes[idx + 0];
+            g = bytes[idx + 1];
+            r = bytes[idx + 2];
+            a = bytes[idx + 3];
+            break;
+          case VK_FORMAT_R8G8B8A8_UNORM:
+          case VK_FORMAT_R8G8B8A8_SRGB:
+          default:
+            // Default to R, G, B, A ordering
+            r = bytes[idx + 0];
+            g = bytes[idx + 1];
+            b = bytes[idx + 2];
+            a = bytes[idx + 3];
+            break;
+        }
+        std::cerr << "Swapchain center pixel (interpreted RGBA) = (" << (int)r << "," << (int)g << "," << (int)b << "," << (int)a << ")\n";
+      } else {
+        std::cerr << "Staging buffer too small for center pixel readback\n";
+      }
+      vkUnmapMemory(device, stagingMemory);
+    }
+    vkDestroyBuffer(device, stagingBuffer, nullptr);
+    vkFreeMemory(device, stagingMemory, nullptr);
+    stagingBuffer = VK_NULL_HANDLE;
+    stagingMemory = VK_NULL_HANDLE;
+  }
 }
 
 } // namespace vklite

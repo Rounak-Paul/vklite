@@ -64,6 +64,28 @@ public:
   PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR = nullptr;
   PFN_vkCmdEndRenderingKHR vkCmdEndRenderingKHR = nullptr;
 
+  // Simple pipeline abstraction for easy drawing from the sandbox.
+  struct Pipeline {
+    VkPipeline pipeline = VK_NULL_HANDLE;
+    VkPipelineLayout layout = VK_NULL_HANDLE;
+    VkShaderModule vert = VK_NULL_HANDLE;
+    VkShaderModule frag = VK_NULL_HANDLE;
+    // primitive vertex count used by draw call
+    uint32_t vertexCount = 0;
+  };
+
+  // Destroy a pipeline
+  void destroyPipeline(Pipeline* p);
+
+  // Record draw commands for the provided pipeline into the given command buffer.
+  // This is a convenience helper the sandbox can call inside the render callback.
+  void recordPipelineDraw(Pipeline* p, Window* window, VkCommandBuffer cmdBuf);
+
+  // Create a pipeline directly from GLSL source strings at runtime. This helper
+  // will invoke an external glslangValidator binary to produce temporary SPIR-V
+  // and then create the pipeline. Returns nullptr on failure.
+  Pipeline* createPipelineFromGlsl(const std::string& vertGlsl, const std::string& fragGlsl, uint32_t vertexCount = 3, VkFormat colorFormat = VK_FORMAT_B8G8R8A8_SRGB);
+
 private:
   std::vector<std::unique_ptr<Window>> windows;
   // Render a single window (internal)

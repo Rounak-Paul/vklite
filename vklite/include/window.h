@@ -14,6 +14,8 @@ struct Window {
   VkSwapchainKHR swapchain = VK_NULL_HANDLE;
   std::vector<VkImage> swapchainImages;
   std::vector<VkImageView> swapchainImageViews;
+  // Format of swapchain images (set when swapchain created)
+  VkFormat swapchainFormat = VK_FORMAT_UNDEFINED;
   // dynamic rendering: no render pass/framebuffers are required
   // Per-window frame resources
   VkCommandPool commandPool = VK_NULL_HANDLE;
@@ -24,6 +26,10 @@ struct Window {
   int width = 0;
   int height = 0;
   std::string title;
+  // Optional pipeline that will be drawn each frame into this window.
+  // Managed by the application (sandbox) via Context::createPipelineFromSpv / destroyPipeline.
+  struct VkPipelinePlaceholder; // forward only symbol for header cleanliness
+  void* pipeline = nullptr; // will actually be Context::Pipeline*
 };
 
 } // namespace vklite

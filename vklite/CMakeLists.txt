@@ -12,7 +12,9 @@ find_package(Vulkan REQUIRED)
 add_library(vklite
     src/vklite.cpp
     src/window.cpp
+    src/pipeline.cpp
 )
+
 
 target_include_directories(vklite
     PUBLIC
