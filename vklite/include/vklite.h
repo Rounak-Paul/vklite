@@ -5,6 +5,7 @@
 #include <vulkan/vulkan.h>
 #include <string>
 #include <vector>
+#include <functional>
 #include <memory>
 #include "window.h"
 
@@ -18,6 +19,16 @@ namespace vklite {
 class Context {
 public:
   VkInstance instance = VK_NULL_HANDLE;
+  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkDevice device = VK_NULL_HANDLE;
+  VkQueue graphicsQueue = VK_NULL_HANDLE;
+  uint32_t graphicsQueueFamily = UINT32_MAX;
+  // Validation / debug utils
+  bool validation_enabled = true;
+  // User-provided callback invoked when a validation message arrives.
+  // Signature: (severity, messageType, message)
+  std::function<void(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const std::string&)> validation_callback;
+  VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
   // Initialize creates the Vulkan instance and prepares internal state.
   // Returns true on success, false on failure.
@@ -25,6 +36,11 @@ public:
 
   // Create a new window. Returns pointer to Window struct.
   Window* createWindow(int width, int height, const std::string& title);
+
+  // Create/destroy per-window surface and swapchain helpers
+  bool createSurfaceForWindow(Window* window);
+  bool createSwapchainForWindow(Window* window);
+  void destroySwapchainForWindow(Window* window);
 
   // Destroy a window.
   void destroyWindow(Window* window);
@@ -44,8 +60,14 @@ public:
   // Shutdown cleans up Vulkan objects and internal resources.
   void shutdown();
 
+  // Device-level function pointers (optional features)
+  PFN_vkCmdBeginRenderingKHR vkCmdBeginRenderingKHR = nullptr;
+  PFN_vkCmdEndRenderingKHR vkCmdEndRenderingKHR = nullptr;
+
 private:
   std::vector<std::unique_ptr<Window>> windows;
+  // Render a single window (internal)
+  void renderWindow(Window* window);
 };
 
 } // namespace vklite
