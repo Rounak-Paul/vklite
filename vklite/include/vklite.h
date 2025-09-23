@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "window.h"
 
 // Platform macros provided by the build system:
 // - VKLITE_PLAT_WINDOWS (windows)
@@ -14,17 +15,6 @@
 
 namespace vklite {
 
-
-
-#include <vector>
-#include <memory>
-struct Window {
-  void* handle = nullptr; // Will be GLFWwindow*
-  // Future: VkSurfaceKHR surface; VkSwapchainKHR swapchain; etc.
-  int width = 0;
-  int height = 0;
-  std::string title;
-};
 class Context {
 public:
   VkInstance instance = VK_NULL_HANDLE;

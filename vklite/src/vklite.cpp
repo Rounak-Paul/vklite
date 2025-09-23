@@ -6,6 +6,10 @@
 #include <stdexcept>
 #include <GLFW/glfw3.h>
 
+static void vklite_glfw_error_callback(int error, const char* description) {
+  std::cerr << "GLFW error [" << error << "]: " << (description ? description : "<null>") << std::endl;
+}
+
 namespace vklite {
 
 bool Context::initialize(const std::string &appName){
@@ -37,7 +41,11 @@ bool Context::initialize(const std::string &appName){
   }
 
   // Query required extensions from GLFW
-  if (!glfwInit()) {
+  // Install error callback before init so we catch failures
+  glfwSetErrorCallback(vklite_glfw_error_callback);
+
+  bool glfw_inited = glfwInit() != 0;
+  if (!glfw_inited) {
     std::cerr << "Failed to initialize GLFW!" << std::endl;
     return false;
   }
@@ -79,64 +87,7 @@ bool Context::initialize(const std::string &appName){
 }
 
 
-Window* Context::createWindow(int width, int height, const std::string& title) {
-  GLFWwindow* win = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-  if (!win) {
-    std::cerr << "Failed to create GLFW window: " << title << std::endl;
-    return nullptr;
-  }
-  auto w = std::make_unique<Window>();
-  w->handle = win;
-  w->width = width;
-  w->height = height;
-  w->title = title;
-  // Store the window in our managed list and return a raw pointer handle.
-  windows.push_back(std::move(w));
-  return windows.back().get();
-}
-
-void Context::destroyWindow(Window* window) {
-  if (!window || !window->handle) return;
-  GLFWwindow* gw = static_cast<GLFWwindow*>(window->handle);
-  glfwDestroyWindow(gw);
-  window->handle = nullptr;
-  // Erase from our windows vector
-  for (auto it = windows.begin(); it != windows.end(); ++it) {
-    if (it->get() == window) {
-      windows.erase(it);
-      break;
-    }
-  }
-}
-
-bool Context::isWindowOpen(const Window* window) const {
-  if (!window || !window->handle) return false;
-  return !glfwWindowShouldClose(static_cast<GLFWwindow*>(window->handle));
-}
-
-void Context::pollEvents() {
-  glfwPollEvents();
-}
-
-void Context::runMainLoop() {
-  while (true) {
-    // Poll platform/window events for all windows.
-    pollEvents();
-
-    // Collect windows that requested close and destroy them.
-    std::vector<Window*> toDestroy;
-    for (auto& up : windows) {
-      Window* w = up.get();
-      if (w && w->handle && glfwWindowShouldClose(static_cast<GLFWwindow*>(w->handle))) {
-        toDestroy.push_back(w);
-      }
-    }
-
-    for (Window* w : toDestroy) destroyWindow(w);
-
-    if (windows.empty()) break;
-  }
-}
+// Window-related methods are implemented in src/window.cpp
 
 void Context::shutdown(){
   // Destroy all windows

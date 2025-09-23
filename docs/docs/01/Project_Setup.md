@@ -66,20 +66,14 @@ struct Context {
 namespace vklite {
 
 bool Context::initialize(const std::string &appName){
-	std::cout << "vklite: initialize for " << appName;
-#if defined(VKLITE_PLAT_WINDOWS)
-	std::cout << " [platform: windows]";
-#elif defined(VKLITE_PLAT_MAC)
-	std::cout << " [platform: macos]";
-#elif defined(VKLITE_PLAT_LINUX)
-	std::cout << " [platform: linux]";
-#endif
-	std::cout << "\n";
-	return true;
+    // Initializes Vulkan instance, queries loader version and prepares GLFW.
+    // See the Instance Creation chapter for details on instance flags and
+    // required extensions.
+    return true;
 }
 
 void Context::shutdown(){
-	std::cout << "vklite: shutdown\n";
+    // Clean up Vulkan and windowing resources.
 }
 
 } // namespace vklite

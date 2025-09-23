@@ -11,6 +11,7 @@ find_package(Vulkan REQUIRED)
 
 add_library(vklite
     src/vklite.cpp
+    src/window.cpp
 )
 
 target_include_directories(vklite

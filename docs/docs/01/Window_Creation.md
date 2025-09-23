@@ -10,7 +10,7 @@ This chapter demonstrates how to use the `vklite::Context` API to create, manage
 
 ---
 
-## 1. Creating Windows
+## Creating Windows
 
 After initializing the `Context`, you can create windows using the `createWindow` method. Each window is represented by a `Window*` handle managed by the context.
 
@@ -30,13 +30,13 @@ if (!win1 || !win2) {
 
 ---
 
-## 2. The Application Loop
+## The Application Loop
 
 VkLite centralizes the application loop for you. The recommended approach is to call `ctx.runMainLoop()` which polls events and will return when all windows are closed. This keeps your application code concise and avoids accidental misuse of GLFW.
 
 ---
 
-## 3. Cleanup
+## Cleanup
 
 When the loop exits, call `ctx.shutdown()` to destroy all windows and release resources:
 
@@ -46,7 +46,7 @@ ctx.shutdown();
 
 ---
 
-## 4. Full Example
+## Full Example
 
 ```cpp
 #include "vklite.h"
@@ -67,9 +67,8 @@ int main() {
         return 1;
     }
 
-    std::cout << "sandbox running... (close all windows to exit)\n";
+    // Application is running; close windows to exit the loop.
 
-    // Preferred: let the engine run the main loop and handle window lifecycle.
     ctx.runMainLoop();
 
     ctx.shutdown();
@@ -79,6 +78,6 @@ int main() {
 
 ---
 
-## 5. Next Steps
+## Next Steps
 
 You can now create and manage multiple windows in your application. The next step is to create a Vulkan surface and swapchain for each window, and begin rendering.
