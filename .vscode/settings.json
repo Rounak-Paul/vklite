@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*._scene": "xml",
+        "iostream": "cpp",
+        "vector": "cpp"
+    }
+}

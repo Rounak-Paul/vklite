@@ -41,6 +41,8 @@ bool Context::initialize(const std::string &appName){
     std::cerr << "Failed to initialize GLFW!" << std::endl;
     return false;
   }
+  // We use Vulkan for rendering; tell GLFW not to create an OpenGL context
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   uint32_t glfwExtensionCount = 0;
   const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
   std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
@@ -76,12 +78,81 @@ bool Context::initialize(const std::string &appName){
   return true;
 }
 
-void Context::shutdown(){
-    if (instance != VK_NULL_HANDLE) {
-        vkDestroyInstance(instance, nullptr);
-        instance = VK_NULL_HANDLE;
+
+Window* Context::createWindow(int width, int height, const std::string& title) {
+  GLFWwindow* win = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+  if (!win) {
+    std::cerr << "Failed to create GLFW window: " << title << std::endl;
+    return nullptr;
+  }
+  auto w = std::make_unique<Window>();
+  w->handle = win;
+  w->width = width;
+  w->height = height;
+  w->title = title;
+  // Store the window in our managed list and return a raw pointer handle.
+  windows.push_back(std::move(w));
+  return windows.back().get();
+}
+
+void Context::destroyWindow(Window* window) {
+  if (!window || !window->handle) return;
+  GLFWwindow* gw = static_cast<GLFWwindow*>(window->handle);
+  glfwDestroyWindow(gw);
+  window->handle = nullptr;
+  // Erase from our windows vector
+  for (auto it = windows.begin(); it != windows.end(); ++it) {
+    if (it->get() == window) {
+      windows.erase(it);
+      break;
     }
-    std::cout << "vklite: shutdown" << std::endl;
+  }
+}
+
+bool Context::isWindowOpen(const Window* window) const {
+  if (!window || !window->handle) return false;
+  return !glfwWindowShouldClose(static_cast<GLFWwindow*>(window->handle));
+}
+
+void Context::pollEvents() {
+  glfwPollEvents();
+}
+
+void Context::runMainLoop() {
+  while (true) {
+    // Poll platform/window events for all windows.
+    pollEvents();
+
+    // Collect windows that requested close and destroy them.
+    std::vector<Window*> toDestroy;
+    for (auto& up : windows) {
+      Window* w = up.get();
+      if (w && w->handle && glfwWindowShouldClose(static_cast<GLFWwindow*>(w->handle))) {
+        toDestroy.push_back(w);
+      }
+    }
+
+    for (Window* w : toDestroy) destroyWindow(w);
+
+    if (windows.empty()) break;
+  }
+}
+
+void Context::shutdown(){
+  // Destroy all windows
+  for (auto& w : windows) {
+    if (w && w->handle) {
+      glfwDestroyWindow(static_cast<GLFWwindow*>(w->handle));
+      w->handle = nullptr;
+    }
+  }
+  windows.clear();
+  glfwTerminate();
+  if (instance != VK_NULL_HANDLE) {
+    vkDestroyInstance(instance, nullptr);
+    instance = VK_NULL_HANDLE;
+  }
+  std::cout << "vklite: shutdown" << std::endl;
 }
 
 } // namespace vklite

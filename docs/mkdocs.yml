@@ -10,6 +10,7 @@ nav:
       - Vulkan SDK: 01/Vulkan_SDK.md
       - Project Setup: 01/Project_Setup.md
       - Instance Creation: 01/Instance_Creation.md
+    - Window Creation: 01/Window_Creation.md
     # - 02. Renderloop:
     # - 03. The Compute Pipeline:
     # - 04. Immidiate Mode GUI:

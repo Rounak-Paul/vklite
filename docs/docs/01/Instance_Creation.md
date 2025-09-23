@@ -110,4 +110,4 @@ After these changes, your `Context` will create and destroy a Vulkan instance. Y
 
 ---
 
-**Next:** [Render Loop]()
+**Next** [Window Creation](Window_Creation.md)

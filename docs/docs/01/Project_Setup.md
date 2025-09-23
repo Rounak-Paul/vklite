@@ -10,7 +10,6 @@ With the Vulkan SDK installed and verified (see previous chapter), we are ready 
 
 ## Create the Folder Structure
 
-
 Organize your project for clarity and scalability. A recommended structure is:
 
 ```text
@@ -20,22 +19,15 @@ project_root/
 │   ├── CMakeLists.txt
 │   ├── include/
 │   │   └── vklite.h
-│   ├── src/
-│   │   └── vklite.cpp
-│   └── vendor/
-│       ├── entt/
-│       ├── glfw/
-│       ├── glm/
-│       ├── imgui/
-│       ├── tinyobjloader/
-│       └── vma/
+│   └── src/
+│       └── vklite.cpp
 ├── sandbox/
 │   ├── CMakeLists.txt
 │   └── src/
 │       └── main.cpp
 ```
 
-This separates the core renderer (`vklite`) from example or test applications (`sandbox`), and places all third-party dependencies in the `vendor` folder as submodules.
+This separates the core renderer (`vklite`) from example or test applications (`sandbox`).
 
 ## Source Code for Starter Files
 
@@ -132,45 +124,22 @@ Each subdirectory (`vklite`, `sandbox`) should have its own `CMakeLists.txt`.
 
 ## Configure Vulkan SDK in CMake
 
-target_include_directories(vklite PUBLIC include)
-target_link_libraries(vklite PUBLIC Vulkan::Vulkan)
-
-In your `vklite/CMakeLists.txt`, add each vendor as a subdirectory and link their targets to your library:
+In your `vklite/CMakeLists.txt`, find and link the Vulkan library:
 
 ```cmake
-# Add vendor submodules
-add_subdirectory(vendor/glfw)
-add_subdirectory(vendor/glm)
-add_subdirectory(vendor/entt)
-add_subdirectory(vendor/imgui)
-add_subdirectory(vendor/tinyobjloader)
-add_subdirectory(vendor/vma)
-
 find_package(Vulkan REQUIRED)
 
 add_library(vklite
 	src/vklite.cpp
+	include/vklite.h
 )
 
-target_include_directories(vklite
-	PUBLIC
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		$<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(vklite
-	PUBLIC
-		Vulkan::Vulkan
-		glfw
-		glm-header-only
-		EnTT
-		ImGui
-		tinyobjloader
-		GPUOpen::VulkanMemoryAllocator
-)
+target_include_directories(vklite PUBLIC include)
+target_link_libraries(vklite PUBLIC Vulkan::Vulkan)
+set_target_properties(vklite PROPERTIES CXX_STANDARD 20)
 ```
 
-This ensures your renderer links against the Vulkan SDK and all third-party dependencies, using modern C++.
+This ensures your renderer links against the Vulkan SDK and uses modern C++.
 
 ---
 
@@ -206,5 +175,5 @@ If everything is set up correctly, you should see both the `vklite` library and 
 
 You are now ready to begin implementing Vulkan features in your renderer. The next chapter will guide you through creating the Vulkan instance, the first step in any Vulkan application.
 
-**Next:** [Instance Creation](Instance_Creation.md)
+**Next** [Instance Creation](Instance_Creation.md)
 
