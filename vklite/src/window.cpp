@@ -276,8 +276,10 @@ void Context::renderWindow(Window* window) {
 
   uint32_t imageIndex = 0;
   VkResult r = vkAcquireNextImageKHR(device, window->swapchain, UINT64_MAX, window->imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-  std::cerr << "vkAcquireNextImageKHR result=" << r << " imageIndex=" << imageIndex << "\n";
-  if (r != VK_SUCCESS && r != VK_SUBOPTIMAL_KHR) return;
+  if (r != VK_SUCCESS && r != VK_SUBOPTIMAL_KHR) {
+    std::cerr << "vkAcquireNextImageKHR failed result=" << r << "\n";
+    return;
+  }
 
   // Record command buffer: transition image layout and begin dynamic rendering
   VkCommandBufferBeginInfo bi{};
@@ -461,8 +463,10 @@ void Context::renderWindow(Window* window) {
   submit.pSignalSemaphores = signalSemaphores;
 
   VkResult submitRes = vkQueueSubmit(graphicsQueue, 1, &submit, window->inFlightFence);
-  std::cerr << "vkQueueSubmit result=" << submitRes << "\n";
-  if (submitRes != VK_SUCCESS) return;
+  if (submitRes != VK_SUCCESS) {
+    std::cerr << "vkQueueSubmit failed result=" << submitRes << "\n";
+    return;
+  }
 
   VkPresentInfoKHR present{};
   present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -473,10 +477,12 @@ void Context::renderWindow(Window* window) {
   present.pImageIndices = &imageIndex;
 
   VkResult presRes = vkQueuePresentKHR(graphicsQueue, &present);
-  std::cerr << "vkQueuePresentKHR result=" << presRes << "\n";
+  if (presRes != VK_SUCCESS) {
+    std::cerr << "vkQueuePresentKHR failed result=" << presRes << "\n";
+  }
 
   // For debugging: wait for device idle and inspect the staging buffer's center pixel
-  if (stagingBuffer != VK_NULL_HANDLE && stagingMemory != VK_NULL_HANDLE) {
+  if (stagingBuffer != VK_NULL_HANDLE && stagingMemory != VK_NULL_HANDLE && this->debugReadback) {
     vkDeviceWaitIdle(device);
     void* data = nullptr;
     vkMapMemory(device, stagingMemory, 0, VK_WHOLE_SIZE, 0, &data);
@@ -510,7 +516,7 @@ void Context::renderWindow(Window* window) {
             a = bytes[idx + 3];
             break;
         }
-        std::cerr << "Swapchain center pixel (interpreted RGBA) = (" << (int)r << "," << (int)g << "," << (int)b << "," << (int)a << ")\n";
+  std::cerr << "Swapchain center pixel (interpreted RGBA) = (" << (int)r << "," << (int)g << "," << (int)b << "," << (int)a << ")\n";
       } else {
         std::cerr << "Staging buffer too small for center pixel readback\n";
       }

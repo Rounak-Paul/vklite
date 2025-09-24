@@ -86,6 +86,10 @@ public:
   // and then create the pipeline. Returns nullptr on failure.
   Pipeline* createPipelineFromGlsl(const std::string& vertGlsl, const std::string& fragGlsl, uint32_t vertexCount = 3, VkFormat colorFormat = VK_FORMAT_B8G8R8A8_SRGB);
 
+  // When true perform GPU->CPU readback and print a small diagnostic per-frame.
+  // Default false to avoid spamming output and slowing down runtime.
+  bool debugReadback = false;
+
 private:
   std::vector<std::unique_ptr<Window>> windows;
   // Render a single window (internal)
