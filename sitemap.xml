@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/00/Introduction/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/01/Instance_Creation/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/01/Project_Setup/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/01/Vulkan_SDK/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+    <url>
+         <loc>https://rounak-paul.github.io/vklite/01/Window_Creation/</loc>
+         <lastmod>2025-09-24</lastmod>
+    </url>
+</urlset>
